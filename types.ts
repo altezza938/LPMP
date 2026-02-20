@@ -3,6 +3,7 @@ export type StatusCategory = 'approved' | 'submitted' | 'pending' | 'rejected' |
 export interface ProjectFeature {
   id: string;
   no: number;
+  agreement: string;
   location: string;
   featureNo: string;
   s3rStatus: string;
@@ -10,9 +11,15 @@ export interface ProjectFeature {
   stlaXpStatus: string;
   stlaCategory: StatusCategory;
   accessPermission: string;
+  accessCategory: StatusCategory;
   engineeringPlan: string;
-  tprpStatus: string;
+  engineeringPlanCategory: StatusCategory;
+  tprpTwvp: string;
+  tprpTwvpCategory: StatusCategory;
+  tprpMr: string;
+  tprpMrCategory: StatusCategory;
   hsspStatus: string;
+  hsspCategory: StatusCategory;
   remarks?: string;
   coordinates: {
     lat: number;
@@ -24,4 +31,10 @@ export interface ChartData {
   name: string;
   value: number;
   color: string;
+}
+
+export interface Agreement {
+  id: string;
+  name: string;
+  description: string;
 }
