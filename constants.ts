@@ -22,6 +22,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'HSSP endorsed', hsspCategory: 'approved',
     coordinates: { lat: 22.3945, lng: 113.9745 },
+    accepted: false,
   },
   // === Row 2 ===
   {
@@ -36,6 +37,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3952, lng: 113.9738 },
+    accepted: false,
   },
   // === Row 3 ===
   {
@@ -50,6 +52,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'Approved by MR', tprpMrCategory: 'approved',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3685, lng: 114.0582 },
+    accepted: false,
   },
   // === Row 4 ===
   {
@@ -64,6 +67,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3628, lng: 114.0125 },
+    accepted: false,
   },
   // === Row 5 ===
   {
@@ -78,6 +82,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3620, lng: 114.0130 },
+    accepted: false,
   },
   // === Row 6 ===
   {
@@ -92,6 +97,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3615, lng: 114.0135 },
+    accepted: false,
   },
   // === Row 7 ===
   {
@@ -106,6 +112,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3750, lng: 114.0550 },
+    accepted: false,
   },
   // === Row 8 ===
   {
@@ -120,6 +127,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3695, lng: 114.0550 },
+    accepted: false,
   },
   // === Row 9 ===
   {
@@ -134,6 +142,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'Submitted 28 Nov 2025', tprpMrCategory: 'submitted',
     hsspStatus: 'Submitted 21 Nov 2025', hsspCategory: 'submitted',
     coordinates: { lat: 22.5430, lng: 114.2185 },
+    accepted: false,
   },
   // === Row 10 ===
   {
@@ -148,6 +157,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'To be submitted', tprpMrCategory: 'pending',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3710, lng: 114.0020 },
+    accepted: false,
   },
   // === Row 11 ===
   {
@@ -162,6 +172,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3755, lng: 114.0050 },
+    accepted: false,
   },
   // === Row 12 ===
   {
@@ -176,6 +187,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'To be submitted', tprpMrCategory: 'pending',
     hsspStatus: 'Approved on 7 Oct 2025', hsspCategory: 'approved',
     coordinates: { lat: 22.2350, lng: 113.9350 },
+    accepted: false,
   },
   // === Row 13 ===
   {
@@ -190,6 +202,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'To be submitted', tprpMrCategory: 'pending',
     hsspStatus: 'Approved on 7 Oct 2025', hsspCategory: 'approved',
     coordinates: { lat: 22.2340, lng: 113.9340 },
+    accepted: false,
   },
   // === Row 14 ===
   {
@@ -204,6 +217,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3780, lng: 114.0400 },
+    accepted: false,
   },
   // === Row 15 ===
   {
@@ -218,6 +232,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3730, lng: 114.0480 },
+    accepted: false,
   },
   // === Row 16 ===
   {
@@ -232,6 +247,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3720, lng: 114.0510 },
+    accepted: false,
   },
   // === Row 17 ===
   {
@@ -246,6 +262,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be confirmed with VR', hsspCategory: 'pending',
     coordinates: { lat: 22.3740, lng: 114.0480 },
+    accepted: false,
   },
   // === Row 18 ===
   {
@@ -260,6 +277,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be confirmed with VR', hsspCategory: 'pending',
     coordinates: { lat: 22.3680, lng: 114.0590 },
+    accepted: false,
   },
   // === Row 19 ===
   {
@@ -274,6 +292,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3670, lng: 114.0600 },
+    accepted: false,
   },
   // === Row 20 ===
   {
@@ -288,6 +307,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3675, lng: 114.0610 },
+    accepted: false,
   },
   // === Row 21 ===
   {
@@ -302,6 +322,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3665, lng: 114.0700 },
+    accepted: false,
   },
   // === Row 22 ===
   {
@@ -316,6 +337,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3660, lng: 114.0720 },
+    accepted: false,
   },
   // === Row 23 ===
   {
@@ -330,6 +352,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'N/A', hsspCategory: 'not-applicable',
     coordinates: { lat: 22.3700, lng: 114.0680 },
+    accepted: false,
   },
   // === Row 24 ===
   {
@@ -344,6 +367,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.5050, lng: 114.1450 },
+    accepted: false,
   },
   // === Row 25 ===
   {
@@ -358,6 +382,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.5300, lng: 114.1600 },
+    accepted: false,
   },
   // === Row 26 ===
   {
@@ -372,6 +397,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.2900, lng: 114.0150 },
+    accepted: false,
   },
   // === Row 27 ===
   {
@@ -386,6 +412,7 @@ export const MOCK_DATA: ProjectFeature[] = [
     tprpMr: 'N/A', tprpMrCategory: 'not-applicable',
     hsspStatus: 'To be submitted', hsspCategory: 'pending',
     coordinates: { lat: 22.3550, lng: 114.1050 },
+    accepted: false,
   },
 ];
 

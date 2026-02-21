@@ -25,6 +25,9 @@ export interface ProjectFeature {
     lat: number;
     lng: number;
   };
+  accepted: boolean;
+  acceptedDate?: string;
+  acceptedBy?: string;
 }
 
 export interface ChartData {
