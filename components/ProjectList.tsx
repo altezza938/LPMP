@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProjectFeature, StatusCategory } from '../types';
 import StatusBadge from './StatusBadge';
 import { Search, Filter, Download, MapPin, Edit2, X, Check, CheckSquare, Square } from 'lucide-react';
+import { useAppContext } from '../AppContext';
 
 interface ProjectListProps {
   data: ProjectFeature[];
@@ -15,9 +16,11 @@ interface ProjectListProps {
 const STATUS_OPTIONS: StatusCategory[] = ['approved', 'submitted', 'pending', 'rejected', 'draft', 'not-applicable'];
 
 const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFeature, onUpdateFeature, onToggleAccepted, fullTable }) => {
+  const { state } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterAccepted, setFilterAccepted] = useState<string>('all');
+  const [filterTaskOrder, setFilterTaskOrder] = useState<string>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ProjectFeature | null>(null);
   const rowRefs = useRef<{ [key: string]: HTMLTableRowElement | null }>({});
@@ -26,11 +29,13 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
     const matchesSearch =
       item.featureNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || item.s3rCategory === filterStatus;
+    const matchesStatus = filterStatus === 'all' || item.s3rCategory === filterStatus;
     const matchesAccepted = filterAccepted === 'all' ||
       (filterAccepted === 'accepted' && item.accepted) ||
       (filterAccepted === 'not-accepted' && !item.accepted);
-    return matchesSearch && matchesFilter && matchesAccepted;
+    const matchesTaskOrder = filterTaskOrder === 'all' || item.taskOrderId === filterTaskOrder || (!item.taskOrderId && filterTaskOrder === 'unassigned');
+
+    return matchesSearch && matchesStatus && matchesAccepted && matchesTaskOrder;
   });
 
   useEffect(() => {
@@ -71,31 +76,34 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
 
   const exportCSV = useCallback(() => {
     const headers = [
-      'No.', 'Feature No.', 'Location', 'Accepted', 'Accepted Date', 'Accepted By',
+      'No.', 'Feature No.', 'Location', 'Task Order', 'Accepted', 'Accepted Date', 'Accepted By',
       'S3R Status', 'S3R Category',
       'STLA/XP', 'STLA Category', 'Access Permission', 'Access Category',
       'Engineering Plan', 'Eng Plan Category',
       'TPRP TWVP', 'TPRP TWVP Category', 'TPRP MR', 'TPRP MR Category',
       'HSSP', 'HSSP Category',
     ];
-    const rows = filteredData.map(d => [
-      d.no, d.featureNo, `"${d.location}"`,
-      d.accepted ? 'Yes' : 'No', d.acceptedDate || '', d.acceptedBy || '',
-      `"${d.s3rStatus}"`, d.s3rCategory,
-      `"${d.stlaXpStatus}"`, d.stlaCategory, `"${d.accessPermission}"`, d.accessCategory,
-      `"${d.engineeringPlan}"`, d.engineeringPlanCategory,
-      `"${d.tprpTwvp}"`, d.tprpTwvpCategory, `"${d.tprpMr}"`, d.tprpMrCategory,
-      `"${d.hsspStatus}"`, d.hsspCategory,
-    ]);
+    const rows = filteredData.map(d => {
+      const toObj = state.taskOrders.find(t => t.id === d.taskOrderId);
+      return [
+        d.no, d.featureNo, `"${d.location}"`, toObj ? `"${toObj.toNo}"` : 'Unassigned',
+        d.accepted ? 'Yes' : 'No', d.acceptedDate || '', d.acceptedBy || '',
+        `"${d.s3rStatus}"`, d.s3rCategory,
+        `"${d.stlaXpStatus}"`, d.stlaCategory, `"${d.accessPermission}"`, d.accessCategory,
+        `"${d.engineeringPlan}"`, d.engineeringPlanCategory,
+        `"${d.tprpTwvp}"`, d.tprpTwvpCategory, `"${d.tprpMr}"`, d.tprpMrCategory,
+        `"${d.hsspStatus}"`, d.hsspCategory,
+      ]
+    });
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'LPMit_TOMS_Draft_Task_Orders.csv';
+    a.download = 'LPMit_TOMS_Features.csv';
     a.click();
     URL.revokeObjectURL(url);
-  }, [filteredData]);
+  }, [filteredData, state.taskOrders]);
 
   const StatusCell: React.FC<{ category: StatusCategory; text: string }> = ({ category, text }) => (
     <div className="flex flex-col items-start gap-0.5">
@@ -130,8 +138,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
   return (
     <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col ${fullTable ? 'h-full' : 'h-full'}`}>
       {/* Header Controls */}
-      <div className="p-3 border-b border-gray-100 flex flex-col sm:flex-row gap-3 justify-between items-center bg-white rounded-t-2xl no-print">
-        <div className="relative w-full sm:w-72">
+      <div className="p-3 border-b border-gray-100 flex flex-col lg:flex-row gap-3 justify-between items-center bg-white rounded-t-2xl no-print">
+        <div className="relative w-full lg:w-72">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-gray-400" />
           </div>
@@ -144,7 +152,23 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
           />
         </div>
 
-        <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+        <div className="flex gap-2 w-full lg:w-auto flex-wrap items-center">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+              <Filter className="h-3.5 w-3.5 text-gray-500" />
+            </div>
+            <select
+              className="pl-8 pr-6 py-2 border border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+              value={filterTaskOrder}
+              onChange={(e) => setFilterTaskOrder(e.target.value)}
+            >
+              <option value="all">All Task Orders</option>
+              <option value="unassigned">Unassigned</option>
+              {state.taskOrders.map(to => (
+                <option key={to.id} value={to.id}>{to.toNo}</option>
+              ))}
+            </select>
+          </div>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
               <Filter className="h-3.5 w-3.5 text-gray-500" />
@@ -167,13 +191,13 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
             value={filterAccepted}
             onChange={(e) => setFilterAccepted(e.target.value)}
           >
-            <option value="all">All TOs</option>
+            <option value="all">Acceptance</option>
             <option value="accepted">Accepted ({acceptedCount})</option>
             <option value="not-accepted">Not Accepted ({data.length - acceptedCount})</option>
           </select>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md ml-auto lg:ml-0"
           >
             <Download className="h-3.5 w-3.5" />
             Export
@@ -196,6 +220,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                   Accepted
                 </div>
               </th>
+              <th className="px-2 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-24">Task Order</th>
               <th className="px-2 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-28">Feature No.</th>
               <th className="px-3 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider min-w-[200px]">Location</th>
               <th className="px-2 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-48">S3R</th>
@@ -216,18 +241,18 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
           <tbody className="bg-white divide-y divide-gray-100/80">
             {filteredData.map((row, index) => {
               const isEditing = editingId === row.id;
+              const toObj = state.taskOrders.find(t => t.id === row.taskOrderId);
 
               return (
                 <tr
                   key={row.id}
                   ref={(el) => { rowRefs.current[row.id] = el; }}
                   onClick={() => !isEditing && onSelectFeature(row.id)}
-                  className={`transition-all duration-150 ${
-                    isEditing ? 'bg-amber-50/80' :
-                    selectedId === row.id ? 'bg-emerald-50 ring-1 ring-inset ring-emerald-200 cursor-pointer' :
-                    row.accepted ? 'bg-emerald-50/30 hover:bg-emerald-50/60 cursor-pointer' :
-                    index % 2 === 0 ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50/30 hover:bg-gray-50 cursor-pointer'
-                  }`}
+                  className={`transition-all duration-150 ${isEditing ? 'bg-amber-50/80' :
+                      selectedId === row.id ? 'bg-emerald-50 ring-1 ring-inset ring-emerald-200 cursor-pointer' :
+                        row.accepted ? 'bg-emerald-50/30 hover:bg-emerald-50/60 cursor-pointer' :
+                          index % 2 === 0 ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50/30 hover:bg-gray-50 cursor-pointer'
+                    }`}
                 >
                   {/* Actions */}
                   <td className="px-2 py-2 whitespace-nowrap no-print">
@@ -265,11 +290,10 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                         e.stopPropagation();
                         onToggleAccepted(row.id);
                       }}
-                      className={`inline-flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 ${
-                        row.accepted
+                      className={`inline-flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 ${row.accepted
                           ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200 hover:bg-emerald-600'
                           : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 border border-gray-200'
-                      }`}
+                        }`}
                       title={row.accepted ? `Accepted ${row.acceptedDate || ''} by ${row.acceptedBy || ''}` : 'Mark as accepted'}
                     >
                       {row.accepted ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
@@ -279,12 +303,35 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                     )}
                   </td>
 
+                  {/* Task Order */}
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    {isEditing ? (
+                      <select
+                        className="w-full text-[10px] border border-gray-300 rounded px-1 py-0.5 focus:ring-emerald-500 focus:border-emerald-500"
+                        value={editForm?.taskOrderId || ''}
+                        onChange={(e) => handleInputChange('taskOrderId', e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <option value="">Unassigned</option>
+                        {state.taskOrders.map(to => <option key={to.id} value={to.id}>{to.toNo}</option>)}
+                      </select>
+                    ) : (
+                      toObj ? (
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-1.5 py-0.5 rounded">
+                          {toObj.toNo}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-gray-400 italic">Unassigned</span>
+                      )
+                    )}
+                  </td>
+
                   {/* Feature No. */}
                   <td className="px-2 py-2 whitespace-nowrap">
                     {isEditing ? (
                       <input
                         type="text"
-                        className="w-full text-xs border border-gray-300 rounded px-1 py-0.5 focus:ring-emerald-500 focus:border-emerald-500"
+                        className="w-full text-[10px] border border-gray-300 rounded px-1 py-0.5 focus:ring-emerald-500 focus:border-emerald-500"
                         value={editForm?.featureNo || ''}
                         onChange={(e) => handleInputChange('featureNo', e.target.value)}
                         onClick={(e) => e.stopPropagation()}
@@ -297,10 +344,10 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                   </td>
 
                   {/* Location */}
-                  <td className="px-3 py-2 text-xs text-gray-700">
+                  <td className="px-3 py-2 text-[10px] text-gray-700">
                     {isEditing ? (
                       <textarea
-                        className="w-full text-xs border border-gray-300 rounded px-1 py-0.5"
+                        className="w-full text-[10px] border border-gray-300 rounded px-1 py-0.5"
                         rows={2}
                         value={editForm?.location || ''}
                         onChange={(e) => handleInputChange('location', e.target.value)}
@@ -380,8 +427,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
             })}
             {filteredData.length === 0 && (
               <tr>
-                <td colSpan={12} className="px-6 py-12 text-center text-gray-400">
-                  <div className="text-sm font-medium">No features found matching your search.</div>
+                <td colSpan={13} className="px-6 py-12 text-center text-gray-400">
+                  <div className="text-sm font-medium">No features found matching your filters.</div>
                 </td>
               </tr>
             )}
@@ -394,14 +441,6 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
         <div className="flex items-center gap-3">
           <span className="font-medium">Showing {filteredData.length} of {data.length} features</span>
           <span className="text-emerald-600 font-semibold">{acceptedCount} accepted</span>
-        </div>
-        <div className="flex items-center gap-3 text-[10px]">
-          <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Approved</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500"></span>Submitted</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500"></span>Pending</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>Action Req</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-stone-400"></span>Draft</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-gray-300"></span>N/A</span>
         </div>
       </div>
 

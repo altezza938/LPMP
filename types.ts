@@ -3,7 +3,8 @@ export type StatusCategory = 'approved' | 'submitted' | 'pending' | 'rejected' |
 export interface ProjectFeature {
   id: string;
   no: number;
-  agreement: string;
+  taskOrderId?: string; // Links back to a TO
+  agreement: string; // E.g CE 47/2022 (GE)
   location: string;
   featureNo: string;
   s3rStatus: string;
@@ -30,6 +31,40 @@ export interface ProjectFeature {
   acceptedBy?: string;
 }
 
+export interface TaskOrder {
+  id: string;
+  agreementId: string;
+  toNo: string; // e.g., "TO-01"
+  title: string;
+  status: 'Draft' | 'Issued' | 'Completed';
+  dateIssued?: string;
+  expectedCompletion?: string;
+  remarks?: string;
+}
+
+export interface Invoice {
+  id: string;
+  agreementId: string;
+  invoiceNo: string;
+  amount: number;
+  status: 'Pending' | 'Paid' | 'Rejected';
+  dateSubmitted: string;
+  datePaid?: string;
+  linkedTaskOrders?: string[]; // IDs of Draft TOs this invoice corresponds to
+  remarks?: string;
+}
+
+export interface WorksContract {
+  id: string;
+  agreementId: string;
+  contractNo: string; // e.g., "GE/2024/07"
+  title: string;
+  type: 'GI' | 'LPMit';
+  status: 'Active' | 'Completed' | 'Pending';
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface ChartData {
   name: string;
   value: number;
@@ -40,4 +75,5 @@ export interface Agreement {
   id: string;
   name: string;
   description: string;
+  contractSum?: number; // Optional tracking of total contract value
 }

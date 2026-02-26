@@ -1,114 +1,53 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import ProjectList from './components/ProjectList';
 import ProjectMap from './components/ProjectMap';
 import ProjectTimeline from './components/ProjectTimeline';
 import LoginScreen from './components/LoginScreen';
-import { MOCK_DATA, AGREEMENTS } from './constants';
-import { ProjectFeature } from './types';
-import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare } from 'lucide-react';
+import AgreementsManager from './components/AgreementsManager';
+import TaskOrderManager from './components/TaskOrderManager';
+import InvoiceTracker from './components/InvoiceTracker';
+import ContractMonitor from './components/ContractMonitor';
+import { useAppContext } from './AppContext';
+import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature } from 'lucide-react';
 
-type View = 'dashboard' | 'list' | 'table' | 'timeline';
-
-const STORAGE_KEY = 'lpmit-toms-accepted';
-
-const loadAcceptanceState = (): Record<string, { accepted: boolean; acceptedDate?: string; acceptedBy?: string }> => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveAcceptanceState = (projects: ProjectFeature[]) => {
-  const state: Record<string, { accepted: boolean; acceptedDate?: string; acceptedBy?: string }> = {};
-  projects.forEach(p => {
-    if (p.accepted) {
-      state[p.id] = { accepted: true, acceptedDate: p.acceptedDate, acceptedBy: p.acceptedBy };
-    }
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-};
-
-const initializeProjects = (): ProjectFeature[] => {
-  const saved = loadAcceptanceState();
-  return MOCK_DATA.map(p => ({
-    ...p,
-    accepted: saved[p.id]?.accepted || false,
-    acceptedDate: saved[p.id]?.acceptedDate,
-    acceptedBy: saved[p.id]?.acceptedBy,
-  }));
-};
-
-const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
-  const [projects, setProjects] = useState<ProjectFeature[]>(initializeProjects);
+const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => void }> = ({ currentUser, handleLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { state, updateFeature, exportData, importData } = useAppContext();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    saveAcceptanceState(projects);
-  }, [projects]);
+  const handleToggleAccepted = (id: string) => {
+    const feature = state.features.find(f => f.id === id);
+    if (!feature) return;
 
-  const handleLogin = (username: string) => {
-    setIsAuthenticated(true);
-    setCurrentUser(username);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    setCurrentView('dashboard');
-    setSelectedFeatureId(null);
-  };
-
-  const handleFeatureSelect = (id: string) => {
-    setSelectedFeatureId(id);
-    if (currentView === 'dashboard') {
-      setCurrentView('list');
-    }
-  };
-
-  const handleUpdateProject = (updatedProject: ProjectFeature) => {
-    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-  };
-
-  const handleToggleAccepted = useCallback((id: string) => {
-    setProjects(prev => prev.map(p => {
-      if (p.id !== id) return p;
+    if (feature.accepted) {
+      updateFeature({ ...feature, accepted: false, acceptedDate: undefined, acceptedBy: undefined });
+    } else {
       const now = new Date();
-      if (p.accepted) {
-        return { ...p, accepted: false, acceptedDate: undefined, acceptedBy: undefined };
-      }
-      return {
-        ...p,
+      updateFeature({
+        ...feature,
         accepted: true,
         acceptedDate: now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
         acceptedBy: currentUser || 'Unknown',
-      };
-    }));
-  }, [currentUser]);
-
-  const handleNavClick = (view: View) => {
-    setCurrentView(view);
-    setMobileMenuOpen(false);
+      });
+    }
   };
 
-  const viewTitles: Record<View, string> = {
-    dashboard: 'Project Overview',
-    list: 'Map & Task Orders',
-    table: 'Summary Table of Draft Task Orders',
-    timeline: 'Milestone Timeline',
-  };
+  const navItems = [
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/agreements', icon: Briefcase, label: 'Agreements & TOs' },
+    { path: '/map', icon: MapIcon, label: 'Map & Tasks' },
+    { path: '/table', icon: Table2, label: 'Summary Table' },
+    { path: '/timeline', icon: CalendarRange, label: 'Timeline' },
+    { path: '/invoices', icon: FileText, label: 'Invoices & Payments' },
+    { path: '/contracts', icon: FileSignature, label: 'Works & GI Contracts' },
+  ];
 
-  const acceptedCount = projects.filter(p => p.accepted).length;
-
-  if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
+  const currentNav = navItems.find(item => location.pathname.startsWith(item.path));
+  const viewTitle = currentNav ? currentNav.label : 'Project Overview';
+  const acceptedCount = state.features.filter(p => p.accepted).length;
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] flex">
@@ -120,13 +59,13 @@ const App: React.FC = () => {
         w-[260px] bg-gradient-to-b from-[#0f172a] to-[#1a2744] text-white flex-shrink-0 flex flex-col
         transition-transform duration-300 ease-in-out shadow-2xl
       `}>
-        <div className="p-5 border-b border-white/10 flex items-center gap-3">
+        <div className="p-5 border-b border-white/10 flex items-center gap-3 space-x-2">
           <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
             <Mountain className="w-5 h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="font-bold text-base tracking-tight">LPMit TOMS</h1>
-            <p className="text-[10px] text-emerald-300/70 leading-tight">Task Order Management</p>
+            <h1 className="font-bold text-base tracking-tight truncate">LPMit TOMS</h1>
+            <p className="text-[10px] text-emerald-300/70 leading-tight">Expanded Management</p>
           </div>
           <button
             onClick={() => setMobileMenuOpen(false)}
@@ -139,8 +78,8 @@ const App: React.FC = () => {
         {/* Agreement Badge */}
         <div className="px-4 pt-4 pb-2">
           <div className="bg-gradient-to-r from-emerald-900/60 to-emerald-800/40 border border-emerald-600/30 rounded-xl px-3.5 py-2.5 backdrop-blur-sm">
-            <p className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Agreement</p>
-            <p className="text-sm font-bold text-white mt-0.5">{AGREEMENTS[0].name}</p>
+            <p className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Active Agreement</p>
+            <p className="text-sm font-bold text-white mt-0.5">{state.agreements[0]?.name || 'Multiple'}</p>
           </div>
         </div>
 
@@ -150,43 +89,50 @@ const App: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-emerald-400" />
-                <p className="text-xs text-gray-300 font-medium">TO Accepted</p>
+                <p className="text-xs text-gray-300 font-medium">Features Accepted</p>
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-bold text-white">{acceptedCount}</span>
-                <span className="text-xs text-gray-500">/ {projects.length}</span>
+                <span className="text-xs text-gray-500">/ {state.features.length}</span>
               </div>
             </div>
             <div className="mt-2 w-full bg-white/10 rounded-full h-1.5">
               <div
                 className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${(acceptedCount / projects.length) * 100}%` }}
+                style={{ width: `${state.features.length > 0 ? (acceptedCount / state.features.length) * 100 : 0}%` }}
               ></div>
             </div>
           </div>
         </div>
 
-        <nav className="flex-1 px-3 pt-3 space-y-1">
+        <nav className="flex-1 px-3 pt-3 space-y-1 overflow-y-auto custom-scrollbar">
           <p className="px-3 pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Navigation</p>
-          {([
-            { view: 'dashboard' as View, icon: LayoutDashboard, label: 'Dashboard' },
-            { view: 'list' as View, icon: MapIcon, label: 'Map & Tasks' },
-            { view: 'table' as View, icon: Table2, label: 'Summary Table' },
-            { view: 'timeline' as View, icon: CalendarRange, label: 'Timeline' },
-          ]).map(({ view, icon: Icon, label }) => (
+          {navItems.map(({ path, icon: Icon, label }) => (
             <button
-              key={view}
-              onClick={() => handleNavClick(view)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
-                currentView === view
+              key={path}
+              onClick={() => {
+                navigate(path);
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${location.pathname.startsWith(path)
                   ? 'bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-900/10 border border-emerald-500/30'
                   : 'text-gray-400 hover:bg-white/5 hover:text-gray-200 border border-transparent'
-              }`}
+                }`}
             >
-              <Icon className={`w-[18px] h-[18px] ${currentView === view ? 'text-emerald-400' : ''}`} />
+              <Icon className={`w-[18px] h-[18px] ${location.pathname.startsWith(path) ? 'text-emerald-400' : ''}`} />
               <span className="font-medium text-sm">{label}</span>
             </button>
           ))}
+
+          <div className="mt-6 px-3">
+            <p className="pb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Data Management</p>
+            <button
+              onClick={exportData}
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-all duration-200 text-sm"
+            >
+              Export Backup
+            </button>
+          </div>
         </nav>
 
         <div className="p-4 border-t border-white/10 space-y-3">
@@ -224,10 +170,10 @@ const App: React.FC = () => {
               <Menu className="w-5 h-5" />
             </button>
             <h2 className="text-lg font-bold text-gray-900">
-              {viewTitles[currentView]}
+              {viewTitle}
             </h2>
             <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {projects.length} Features
+              {state.features.length} Features
             </span>
             {acceptedCount > 0 && (
               <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
@@ -256,55 +202,94 @@ const App: React.FC = () => {
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-auto bg-[#f1f5f9]">
-          {currentView === 'dashboard' && (
-            <div className="p-4 md:p-6 max-w-7xl mx-auto">
-              <Dashboard data={projects} onFeatureSelect={handleFeatureSelect} />
-            </div>
-          )}
-          {currentView === 'list' && (
-            <div className="flex flex-col h-full">
-              <div className="h-1/3 min-h-[280px] w-full border-b border-gray-200 shadow-sm relative z-0">
-                <ProjectMap
-                  data={projects}
-                  selectedId={selectedFeatureId}
-                  onSelectFeature={handleFeatureSelect}
-                />
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+            <Route path="/dashboard" element={
+              <div className="p-4 md:p-6 max-w-7xl mx-auto">
+                <Dashboard data={state.features} onFeatureSelect={(id) => navigate('/list')} />
               </div>
-              <div className="flex-1 overflow-hidden p-4 md:p-6 bg-[#f1f5f9]">
+            } />
+
+            <Route path="/agreements" element={<AgreementsManager />} />
+            <Route path="/agreements/:id/task-orders" element={<TaskOrderManager />} />
+
+            <Route path="/invoices" element={<InvoiceTracker />} />
+            <Route path="/contracts" element={<ContractMonitor />} />
+
+            <Route path="/map" element={
+              <div className="flex flex-col h-full">
+                <div className="h-1/3 min-h-[280px] w-full border-b border-gray-200 shadow-sm relative z-0">
+                  <ProjectMap
+                    data={state.features}
+                    selectedId={null}
+                    onSelectFeature={() => { }}
+                  />
+                </div>
+                <div className="flex-1 overflow-hidden p-4 md:p-6 bg-[#f1f5f9]">
+                  <ProjectList
+                    data={state.features}
+                    selectedId={null}
+                    onSelectFeature={() => { }}
+                    onUpdateFeature={updateFeature}
+                    onToggleAccepted={handleToggleAccepted}
+                  />
+                </div>
+              </div>
+            } />
+
+            <Route path="/table" element={
+              <div className="p-4 md:p-6 h-full">
                 <ProjectList
-                  data={projects}
-                  selectedId={selectedFeatureId}
-                  onSelectFeature={handleFeatureSelect}
-                  onUpdateFeature={handleUpdateProject}
+                  data={state.features}
+                  selectedId={null}
+                  onSelectFeature={() => { }}
+                  onUpdateFeature={updateFeature}
                   onToggleAccepted={handleToggleAccepted}
+                  fullTable
                 />
               </div>
-            </div>
-          )}
-          {currentView === 'table' && (
-            <div className="p-4 md:p-6 h-full">
-              <ProjectList
-                data={projects}
-                selectedId={selectedFeatureId}
-                onSelectFeature={handleFeatureSelect}
-                onUpdateFeature={handleUpdateProject}
-                onToggleAccepted={handleToggleAccepted}
-                fullTable
-              />
-            </div>
-          )}
-          {currentView === 'timeline' && (
-            <div className="p-4 md:p-6 h-full">
-              <ProjectTimeline
-                data={projects}
-                selectedId={selectedFeatureId}
-                onSelectProject={setSelectedFeatureId}
-              />
-            </div>
-          )}
+            } />
+
+            <Route path="/timeline" element={
+              <div className="p-4 md:p-6 h-full">
+                <ProjectTimeline
+                  data={state.features}
+                  selectedId={null}
+                  onSelectProject={() => { }}
+                />
+              </div>
+            } />
+
+          </Routes>
         </div>
       </main>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  const handleLogin = (username: string) => {
+    setIsAuthenticated(true);
+    setCurrentUser(username);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  return (
+    <BrowserRouter basename="/LPMit-TO-Management-System">
+      <MainLayout currentUser={currentUser} handleLogout={handleLogout} />
+    </BrowserRouter>
   );
 };
 
