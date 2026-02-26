@@ -68,7 +68,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, onFeatureSelect }) => {
   const acceptedCount = data.filter(d => d.accepted).length;
   const actionItems = data.filter(d =>
     d.s3rCategory === 'rejected' ||
-    d.accessCategory === 'pending' && d.accessPermission.toLowerCase().includes('seeking')
+    (d.accessCategory === 'pending' && d.accessPermission?.toLowerCase().includes('seeking'))
   ).length;
 
   const progressItems = useMemo(() => {
@@ -86,7 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, onFeatureSelect }) => {
   const attentionItems = useMemo(() =>
     data.filter(d =>
       d.s3rCategory === 'rejected' ||
-      (d.accessCategory === 'pending' && d.accessPermission.toLowerCase().includes('seeking'))
+      (d.accessCategory === 'pending' && d.accessPermission?.toLowerCase().includes('seeking'))
     ).slice(0, 5),
     [data]);
 
