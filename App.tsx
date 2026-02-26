@@ -9,12 +9,13 @@ import AgreementsManager from './components/AgreementsManager';
 import TaskOrderManager from './components/TaskOrderManager';
 import InvoiceTracker from './components/InvoiceTracker';
 import ContractMonitor from './components/ContractMonitor';
+import ContractDetails from './components/ContractDetails';
 import { useAppContext } from './AppContext';
 import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature } from 'lucide-react';
 
 const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => void }> = ({ currentUser, handleLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { state, updateFeature, exportData, importData } = useAppContext();
+  const { state, setActiveAgreementId, updateFeature, exportData, importData } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -47,7 +48,19 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
 
   const currentNav = navItems.find(item => location.pathname.startsWith(item.path));
   const viewTitle = currentNav ? currentNav.label : 'Project Overview';
-  const acceptedCount = state.features.filter(p => p.accepted).length;
+
+  const activeAgreement = state.agreements.find(a => a.id === state.activeAgreementId);
+  const filteredTaskOrders = state.taskOrders.filter(to => to.agreementId === state.activeAgreementId);
+  const filteredFeatures = state.features.filter(f => {
+    // If it has a taskOrderId, check if that TO belongs to this agreement
+    if (f.taskOrderId) {
+      return filteredTaskOrders.some(to => to.id === f.taskOrderId);
+    }
+    // Otherwise fallback to checking the agreement name string (legacy loose coupling)
+    return activeAgreement ? f.agreement === activeAgreement.name : true;
+  });
+
+  const acceptedCount = filteredFeatures.filter(p => p.accepted).length;
 
   return (
     <div className="min-h-screen bg-[#f1f5f9] flex">
@@ -78,8 +91,16 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
         {/* Agreement Badge */}
         <div className="px-4 pt-4 pb-2">
           <div className="bg-gradient-to-r from-emerald-900/60 to-emerald-800/40 border border-emerald-600/30 rounded-xl px-3.5 py-2.5 backdrop-blur-sm">
-            <p className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Active Agreement</p>
-            <p className="text-sm font-bold text-white mt-0.5">{state.agreements[0]?.name || 'Multiple'}</p>
+            <p className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider mb-1">Active Agreement</p>
+            <select
+              className="w-full bg-emerald-950/50 border border-emerald-700/50 text-white text-sm font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              value={state.activeAgreementId || ''}
+              onChange={(e) => setActiveAgreementId(e.target.value)}
+            >
+              {state.agreements.map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -93,13 +114,13 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-bold text-white">{acceptedCount}</span>
-                <span className="text-xs text-gray-500">/ {state.features.length}</span>
+                <span className="text-xs text-gray-500">/ {filteredFeatures.length}</span>
               </div>
             </div>
             <div className="mt-2 w-full bg-white/10 rounded-full h-1.5">
               <div
                 className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-1.5 rounded-full transition-all duration-500"
-                style={{ width: `${state.features.length > 0 ? (acceptedCount / state.features.length) * 100 : 0}%` }}
+                style={{ width: `${filteredFeatures.length > 0 ? (acceptedCount / filteredFeatures.length) * 100 : 0}%` }}
               ></div>
             </div>
           </div>
@@ -115,8 +136,8 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
                 setMobileMenuOpen(false);
               }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${location.pathname.startsWith(path)
-                  ? 'bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-900/10 border border-emerald-500/30'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-gray-200 border border-transparent'
+                ? 'bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-900/10 border border-emerald-500/30'
+                : 'text-gray-400 hover:bg-white/5 hover:text-gray-200 border border-transparent'
                 }`}
             >
               <Icon className={`w-[18px] h-[18px] ${location.pathname.startsWith(path) ? 'text-emerald-400' : ''}`} />
@@ -173,7 +194,7 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
               {viewTitle}
             </h2>
             <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {state.features.length} Features
+              {filteredFeatures.length} Features
             </span>
             {acceptedCount > 0 && (
               <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
@@ -207,7 +228,7 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
 
             <Route path="/dashboard" element={
               <div className="p-4 md:p-6 max-w-7xl mx-auto">
-                <Dashboard data={state.features} onFeatureSelect={(id) => navigate('/list')} />
+                <Dashboard data={filteredFeatures} onFeatureSelect={(id) => navigate('/table')} />
               </div>
             } />
 
@@ -221,14 +242,14 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
               <div className="flex flex-col h-full">
                 <div className="h-1/3 min-h-[280px] w-full border-b border-gray-200 shadow-sm relative z-0">
                   <ProjectMap
-                    data={state.features}
+                    data={filteredFeatures}
                     selectedId={null}
                     onSelectFeature={() => { }}
                   />
                 </div>
                 <div className="flex-1 overflow-hidden p-4 md:p-6 bg-[#f1f5f9]">
                   <ProjectList
-                    data={state.features}
+                    data={filteredFeatures}
                     selectedId={null}
                     onSelectFeature={() => { }}
                     onUpdateFeature={updateFeature}
@@ -241,7 +262,7 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
             <Route path="/table" element={
               <div className="p-4 md:p-6 h-full">
                 <ProjectList
-                  data={state.features}
+                  data={filteredFeatures}
                   selectedId={null}
                   onSelectFeature={() => { }}
                   onUpdateFeature={updateFeature}
@@ -254,11 +275,15 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
             <Route path="/timeline" element={
               <div className="p-4 md:p-6 h-full">
                 <ProjectTimeline
-                  data={state.features}
+                  data={filteredFeatures}
                   selectedId={null}
                   onSelectProject={() => { }}
                 />
               </div>
+            } />
+
+            <Route path="/contracts/:id" element={
+              <ContractDetails />
             } />
 
           </Routes>

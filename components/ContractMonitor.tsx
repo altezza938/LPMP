@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../AppContext';
-import { FileSignature, Plus, Edit2, Trash2 } from 'lucide-react';
+import { FileSignature, Plus, Edit2, Trash2, ChevronRight } from 'lucide-react';
 import { WorksContract } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 const ContractMonitor: React.FC = () => {
     const { state, addContract, updateContract, deleteContract } = useAppContext();
+    const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<WorksContract>>({});
 
@@ -122,8 +124,8 @@ const ContractMonitor: React.FC = () => {
                                                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                                     {contract.contractNo}
                                                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${contract.status === 'Active' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                                                            contract.status === 'Completed' ? 'bg-gray-100 border-gray-200 text-gray-600' :
-                                                                'bg-blue-50 border-blue-200 text-blue-700'
+                                                        contract.status === 'Completed' ? 'bg-gray-100 border-gray-200 text-gray-600' :
+                                                            'bg-blue-50 border-blue-200 text-blue-700'
                                                         }`}>
                                                         {contract.status}
                                                     </span>
@@ -144,6 +146,12 @@ const ContractMonitor: React.FC = () => {
                                         <div className="flex items-center gap-3">
                                             {contract.startDate && <span>Start: {contract.startDate}</span>}
                                             {contract.endDate && <span>End: {contract.endDate}</span>}
+                                            <button
+                                                onClick={() => navigate(`/contracts/${encodeURIComponent(contract.contractNo)}`)}
+                                                className="ml-2 flex items-center gap-1 text-emerald-600 hover:text-emerald-700 font-bold bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded transition-colors"
+                                            >
+                                                Details <ChevronRight className="w-3 h-3" />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

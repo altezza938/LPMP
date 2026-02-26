@@ -77,3 +77,31 @@ export interface Agreement {
   description: string;
   contractSum?: number; // Optional tracking of total contract value
 }
+
+export interface FastTrackOpportunity {
+  id: string;
+  agreementId: string;
+  taskName: string;
+  potentialRevenue: number;
+  actionPlan: string;
+}
+
+export interface ExpenditureItem {
+  id: string;
+  contractId: string;
+  category: string;
+  taskOrderNo: string;
+  description: string;
+  approvedValue: number;
+  forecastValue: number;
+}
+
+export interface GIRequestLimit {
+  id: string;
+  contractId: string;
+  featureRef: string;
+  featureType: 'Man-Made' | 'Study Area' | 'Unknown';
+  consultant: string;
+  toValue: number;
+  status: string;
+}

@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+node_modules/
+*.zip
+*.xls
+*.xlsx
+*.pdf
+*.json
+ce47_data/
+ce53_data/
+*.py

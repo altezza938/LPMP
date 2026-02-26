@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { ProjectFeature } from '../types';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Legend } from 'recharts';
 import { COLORS } from '../constants';
-import { CheckCircle, Clock, AlertTriangle, FileText, Shield, TreePine, CheckSquare, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, FileText, Shield, TreePine, CheckSquare, XCircle, Zap, TrendingUp, ChevronRight } from 'lucide-react';
+import { useAppContext } from '../AppContext';
 
 interface DashboardProps {
   data: ProjectFeature[];
@@ -10,7 +11,12 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ data, onFeatureSelect }) => {
+  const { state } = useAppContext();
   const total = data.length;
+
+  const fastTrackItems = useMemo(() => {
+    return state.fastTrackOpportunities.filter(o => !state.activeAgreementId || o.agreementId === state.activeAgreementId);
+  }, [state.fastTrackOpportunities, state.activeAgreementId]);
 
   const s3rStats = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -82,11 +88,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data, onFeatureSelect }) => {
       d.s3rCategory === 'rejected' ||
       (d.accessCategory === 'pending' && d.accessPermission.toLowerCase().includes('seeking'))
     ).slice(0, 5),
-  [data]);
+    [data]);
 
   const recentlyAccepted = useMemo(() =>
     data.filter(d => d.accepted).slice(0, 5),
-  [data]);
+    [data]);
 
   return (
     <div className="space-y-6">
@@ -200,6 +206,49 @@ const Dashboard: React.FC<DashboardProps> = ({ data, onFeatureSelect }) => {
           })}
         </div>
       </div>
+
+      {/* Fast-Track Cashflow Opportunities */}
+      {fastTrackItems.length > 0 && (
+        <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-blue-900 p-6 rounded-2xl shadow-lg border border-indigo-700/50 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+
+          <div className="flex items-center gap-3 mb-5 relative z-10">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-white text-lg font-bold tracking-tight flex items-center gap-2">
+                Cashflow Fast-Track Opportunities
+                <span className="bg-amber-500/20 text-amber-300 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-amber-500/30">Priority</span>
+              </h3>
+              <p className="text-indigo-200 text-xs">Top unbilled milestones with high revenue potential (ETC Cost bottlenecks).</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+            {fastTrackItems.map((item) => (
+              <div key={item.id} className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:bg-white/15 transition-all group">
+                <div className="flex justify-between items-start mb-3">
+                  <h4 className="text-sm font-bold text-white leading-snug line-clamp-2 pr-2">{item.taskName}</h4>
+                  <div className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg text-xs font-bold whitespace-nowrap flex items-center gap-1 shadow-inner">
+                    <TrendingUp className="w-3 h-3" />
+                    ${item.potentialRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </div>
+                </div>
+                <div className="pt-3 mt-auto border-t border-white/10 flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span className="text-xs text-indigo-200 font-medium">Action: <span className="text-white">{item.actionPlan}</span></span>
+                  </div>
+                  <button className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors group-hover:bg-amber-500 group-hover:text-white text-transparent">
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

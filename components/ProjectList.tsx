@@ -25,6 +25,10 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
   const [editForm, setEditForm] = useState<ProjectFeature | null>(null);
   const rowRefs = useRef<{ [key: string]: HTMLTableRowElement | null }>({});
 
+  const relevantTaskOrders = state.activeAgreementId
+    ? state.taskOrders.filter(to => to.agreementId === state.activeAgreementId)
+    : state.taskOrders;
+
   const filteredData = data.filter(item => {
     const matchesSearch =
       item.featureNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,7 +88,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
       'HSSP', 'HSSP Category',
     ];
     const rows = filteredData.map(d => {
-      const toObj = state.taskOrders.find(t => t.id === d.taskOrderId);
+      const toObj = relevantTaskOrders.find(t => t.id === d.taskOrderId);
       return [
         d.no, d.featureNo, `"${d.location}"`, toObj ? `"${toObj.toNo}"` : 'Unassigned',
         d.accepted ? 'Yes' : 'No', d.acceptedDate || '', d.acceptedBy || '',
@@ -164,7 +168,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
             >
               <option value="all">All Task Orders</option>
               <option value="unassigned">Unassigned</option>
-              {state.taskOrders.map(to => (
+              {relevantTaskOrders.map(to => (
                 <option key={to.id} value={to.id}>{to.toNo}</option>
               ))}
             </select>
@@ -241,7 +245,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
           <tbody className="bg-white divide-y divide-gray-100/80">
             {filteredData.map((row, index) => {
               const isEditing = editingId === row.id;
-              const toObj = state.taskOrders.find(t => t.id === row.taskOrderId);
+              const toObj = relevantTaskOrders.find(t => t.id === row.taskOrderId);
 
               return (
                 <tr
@@ -249,9 +253,9 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                   ref={(el) => { rowRefs.current[row.id] = el; }}
                   onClick={() => !isEditing && onSelectFeature(row.id)}
                   className={`transition-all duration-150 ${isEditing ? 'bg-amber-50/80' :
-                      selectedId === row.id ? 'bg-emerald-50 ring-1 ring-inset ring-emerald-200 cursor-pointer' :
-                        row.accepted ? 'bg-emerald-50/30 hover:bg-emerald-50/60 cursor-pointer' :
-                          index % 2 === 0 ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50/30 hover:bg-gray-50 cursor-pointer'
+                    selectedId === row.id ? 'bg-emerald-50 ring-1 ring-inset ring-emerald-200 cursor-pointer' :
+                      row.accepted ? 'bg-emerald-50/30 hover:bg-emerald-50/60 cursor-pointer' :
+                        index % 2 === 0 ? 'hover:bg-gray-50 cursor-pointer' : 'bg-gray-50/30 hover:bg-gray-50 cursor-pointer'
                     }`}
                 >
                   {/* Actions */}
@@ -291,8 +295,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                         onToggleAccepted(row.id);
                       }}
                       className={`inline-flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 ${row.accepted
-                          ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200 hover:bg-emerald-600'
-                          : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 border border-gray-200'
+                        ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200 hover:bg-emerald-600'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600 border border-gray-200'
                         }`}
                       title={row.accepted ? `Accepted ${row.acceptedDate || ''} by ${row.acceptedBy || ''}` : 'Mark as accepted'}
                     >
@@ -313,7 +317,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ data, selectedId, onSelectFea
                         onClick={e => e.stopPropagation()}
                       >
                         <option value="">Unassigned</option>
-                        {state.taskOrders.map(to => <option key={to.id} value={to.id}>{to.toNo}</option>)}
+                        {relevantTaskOrders.map(to => <option key={to.id} value={to.id}>{to.toNo}</option>)}
                       </select>
                     ) : (
                       toObj ? (
