@@ -70,7 +70,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         // Default initial state
         const initialAgreements = [
             ...AGREEMENTS,
-            { id: 'ce53-2022-ge', name: 'CE 53/2022 (GE)', description: 'LPMit Programme - Landslip Prevention and Mitigation Works' }
+            { id: 'ce53-2022-ge', name: 'CE 53/2022 (GE)', description: 'LPMit Programme - Landslip Prevention and Mitigation Works' },
+            { id: 'ce19-2025-ge', name: 'CE 19/2025 (GE)', description: 'LPMit Programme - Landslip Prevention and Mitigation Works (HK Island & Islands)' }
         ];
 
         return {
