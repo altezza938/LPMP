@@ -13,9 +13,10 @@ import ContractDetails from './components/ContractDetails';
 import Settings from './components/Settings';
 import FeatureEditor from './components/FeatureEditor';
 import PaymentScheduleComponent from './components/PaymentSchedule';
+import FeatureBoundaryMap from './components/FeatureBoundaryMap';
 import { useAppContext } from './AppContext';
 import { PAYMENT_SCHEDULES } from './constants';
-import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature, Settings as SettingsIcon, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature, Settings as SettingsIcon, DollarSign, Hexagon } from 'lucide-react';
 
 const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => void }> = ({ currentUser, handleLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,6 +45,7 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/agreements', icon: Briefcase, label: 'Agreements & TOs' },
     { path: '/map', icon: MapIcon, label: 'Map & Tasks' },
+    { path: '/boundaries', icon: Hexagon, label: 'Feature Boundaries' },
     { path: '/table', icon: Table2, label: 'Summary Table' },
     { path: '/timeline', icon: CalendarRange, label: 'Timeline' },
     { path: '/invoices', icon: FileText, label: 'Invoices & Payments' },
@@ -251,6 +253,12 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
               </div>
             } />
             <Route path="/contracts" element={<ContractMonitor />} />
+
+            <Route path="/boundaries" element={
+              <div className="h-full">
+                <FeatureBoundaryMap data={filteredFeatures} />
+              </div>
+            } />
 
             <Route path="/map" element={
               <div className="flex flex-col h-full">
