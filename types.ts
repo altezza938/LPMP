@@ -3,6 +3,7 @@ export type StatusCategory = 'approved' | 'submitted' | 'pending' | 'rejected' |
 export interface ProjectFeature {
   id: string;
   no: number;
+  fileNo?: number;
   taskOrderId?: string; // Links back to a TO
   agreement: string; // E.g CE 47/2022 (GE)
   location: string;
@@ -110,4 +111,24 @@ export interface GIRequestLimit {
 export interface UserCredentials {
   username: string;
   passwordHash: string;
+}
+
+export interface ActivityItem {
+  itemNo: string;
+  description: string;
+  targetDraft: string;
+  targetFinal: string;
+  pricePercent: number;
+  totalAmount: number;
+  draftMilestone: number | null;
+  finalMilestone: number | null;
+  isGroup?: boolean;
+  group: string;
+  paymentNote?: string;
+}
+
+export interface PaymentSchedule {
+  agreementId: string;
+  tenderedTotal: number;
+  activities: ActivityItem[];
 }

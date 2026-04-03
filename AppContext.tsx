@@ -55,47 +55,61 @@ const STORAGE_KEY = 'lpmit-toms-v2-data';
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, setState] = useState<AppState>(() => {
+        const defaultCols = ['featureNo', 's3r', 'stla', 'access', 'engPlan', 'tprp', 'hssp', 'actions'];
+
+        const defaultTaskOrders: TaskOrder[] = [
+            { id: uuidv4(), agreementId: 'ce47-2022-ge', toNo: 'TO-01', title: 'Batch 1 LPMit Works', status: 'Issued', dateIssued: '2024-01-15' },
+            { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-01', title: 'Submission of final Stage 2(H) Report (One Study Area)', status: 'Draft', expectedCompletion: '2026-12-10', remarks: 'Revised Key Date' },
+            { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-02', title: 'Submission of final Stage 2(H) Report (All Study Areas)', status: 'Draft', expectedCompletion: '2027-01-09', remarks: 'Revised Key Date' },
+            { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-03', title: 'Submission of final Stage 3(H) Report (Part 1)', status: 'Draft', expectedCompletion: '2027-09-10', remarks: 'Revised Key Date' },
+            { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-04', title: 'Submission of final Stage 3(H) Report (Part 2)', status: 'Draft', expectedCompletion: '2027-10-09', remarks: 'Revised Key Date' }
+        ];
+
+        const defaultContracts: WorksContract[] = [
+            { id: uuidv4(), agreementId: 'ce47-2022-ge', contractNo: 'GE/2024/07', title: 'GI works for Batch 1', type: 'GI', status: 'Active' },
+            { id: uuidv4(), agreementId: 'ce47-2022-ge', contractNo: 'GE/2024/04', title: 'LPMit Works Contract', type: 'LPMit', status: 'Active' },
+            { id: uuidv4(), agreementId: 'ce53-2022-ge', contractNo: 'GE/2025/10', title: 'LPMit Works Contract', type: 'LPMit', status: 'Pending' }
+        ];
+
+        const freshState: AppState = {
+            activeAgreementId: AGREEMENTS[0]?.id || null,
+            agreements: AGREEMENTS,
+            features: MOCK_DATA,
+            taskOrders: defaultTaskOrders,
+            invoices: MOCK_INVOICES,
+            contracts: defaultContracts,
+            fastTrackOpportunities: FAST_TRACK_OPPORTUNITIES,
+            contractExpenditures: CONTRACT_EXPENDITURES,
+            giRequests: GI_REQUEST_QUOTAS,
+            credentials: { username: 'admin', passwordHash: '123' },
+            columnOrder: defaultCols
+        };
+
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
-                return JSON.parse(stored);
+                const parsed = JSON.parse(stored) as AppState;
+                // Merge any missing agreements from constants
+                const storedAgreementIds = new Set(parsed.agreements.map(a => a.id));
+                for (const ag of AGREEMENTS) {
+                    if (!storedAgreementIds.has(ag.id)) {
+                        parsed.agreements.push(ag);
+                    }
+                }
+                // Merge any missing features from constants
+                const storedFeatureIds = new Set(parsed.features.map(f => f.id));
+                for (const feat of MOCK_DATA) {
+                    if (!storedFeatureIds.has(feat.id)) {
+                        parsed.features.push(feat);
+                    }
+                }
+                return parsed;
             }
         } catch (e) {
             console.error("Failed to parse stored state", e);
         }
 
-        const defaultCols = ['featureNo', 's3r', 'stla', 'access', 'engPlan', 'tprp', 'hssp', 'actions'];
-
-
-        // Default initial state
-        const initialAgreements = [
-            ...AGREEMENTS,
-            { id: 'ce53-2022-ge', name: 'CE 53/2022 (GE)', description: 'LPMit Programme - Landslip Prevention and Mitigation Works' }
-        ];
-
-        return {
-            activeAgreementId: initialAgreements[0]?.id || null,
-            agreements: initialAgreements,
-            features: MOCK_DATA,
-            taskOrders: [
-                { id: uuidv4(), agreementId: 'ce47-2022-ge', toNo: 'TO-01', title: 'Batch 1 LPMit Works', status: 'Issued', dateIssued: '2024-01-15' },
-                { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-01', title: 'Submission of final Stage 2(H) Report (One Study Area)', status: 'Draft', expectedCompletion: '2026-12-10', remarks: 'Revised Key Date' },
-                { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-02', title: 'Submission of final Stage 2(H) Report (All Study Areas)', status: 'Draft', expectedCompletion: '2027-01-09', remarks: 'Revised Key Date' },
-                { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-03', title: 'Submission of final Stage 3(H) Report (Part 1)', status: 'Draft', expectedCompletion: '2027-09-10', remarks: 'Revised Key Date' },
-                { id: uuidv4(), agreementId: 'ce53-2022-ge', toNo: 'MS-04', title: 'Submission of final Stage 3(H) Report (Part 2)', status: 'Draft', expectedCompletion: '2027-10-09', remarks: 'Revised Key Date' }
-            ],
-            invoices: MOCK_INVOICES,
-            contracts: [
-                { id: uuidv4(), agreementId: 'ce47-2022-ge', contractNo: 'GE/2024/07', title: 'GI works for Batch 1', type: 'GI', status: 'Active' },
-                { id: uuidv4(), agreementId: 'ce47-2022-ge', contractNo: 'GE/2024/04', title: 'LPMit Works Contract', type: 'LPMit', status: 'Active' },
-                { id: uuidv4(), agreementId: 'ce53-2022-ge', contractNo: 'GE/2025/10', title: 'LPMit Works Contract', type: 'LPMit', status: 'Pending' }
-            ],
-            fastTrackOpportunities: FAST_TRACK_OPPORTUNITIES,
-            contractExpenditures: CONTRACT_EXPENDITURES,
-            giRequests: GI_REQUEST_QUOTAS,
-            credentials: { username: 'admin', passwordHash: '123' }, // Basic plain-text password init for MVP bypass
-            columnOrder: defaultCols
-        };
+        return freshState;
     });
 
     const [undoStack, setUndoStack] = useState<ProjectFeature[][]>([]);

@@ -12,8 +12,10 @@ import ContractMonitor from './components/ContractMonitor';
 import ContractDetails from './components/ContractDetails';
 import Settings from './components/Settings';
 import FeatureEditor from './components/FeatureEditor';
+import PaymentScheduleComponent from './components/PaymentSchedule';
 import { useAppContext } from './AppContext';
-import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature, Settings as SettingsIcon } from 'lucide-react';
+import { PAYMENT_SCHEDULES } from './constants';
+import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature, Settings as SettingsIcon, DollarSign } from 'lucide-react';
 
 const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => void }> = ({ currentUser, handleLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -45,6 +47,7 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
     { path: '/table', icon: Table2, label: 'Summary Table' },
     { path: '/timeline', icon: CalendarRange, label: 'Timeline' },
     { path: '/invoices', icon: FileText, label: 'Invoices & Payments' },
+    { path: '/payment-schedule', icon: DollarSign, label: 'Payment Schedule' },
     { path: '/contracts', icon: FileSignature, label: 'Works & GI Contracts' },
     { path: '/settings', icon: SettingsIcon, label: 'Settings' }
   ];
@@ -239,6 +242,14 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
             <Route path="/agreements/:id/task-orders" element={<TaskOrderManager />} />
 
             <Route path="/invoices" element={<InvoiceTracker />} />
+            <Route path="/payment-schedule" element={
+              <div className="p-4 md:p-6">
+                <PaymentScheduleComponent
+                  schedule={PAYMENT_SCHEDULES.find(ps => ps.agreementId === state.activeAgreementId)}
+                  agreementName={activeAgreement?.name || ''}
+                />
+              </div>
+            } />
             <Route path="/contracts" element={<ContractMonitor />} />
 
             <Route path="/map" element={
