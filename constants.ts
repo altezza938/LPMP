@@ -6,6 +6,16 @@ export const AGREEMENTS: Agreement[] = [
     name: 'CE 47/2022 (GE)',
     description: 'LPMit Programme - Landslip Prevention and Mitigation Works',
   },
+  {
+    id: 'ce53-2022-ge',
+    name: 'CE 53/2022 (GE)',
+    description: 'LPMit Programme - Landslip Prevention and Mitigation Works',
+  },
+  {
+    id: 'ce19-2025-ge',
+    name: 'CE 19/2025 (GE)',
+    description: 'LPMit Programme - Landslip Prevention and Mitigation Works (HK Island & Islands)',
+  },
 ];
 
 export const MOCK_DATA: ProjectFeature[] = [
