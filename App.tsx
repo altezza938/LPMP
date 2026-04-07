@@ -14,9 +14,10 @@ import Settings from './components/Settings';
 import FeatureEditor from './components/FeatureEditor';
 import PaymentScheduleComponent from './components/PaymentSchedule';
 import FeatureBoundaryMap from './components/FeatureBoundaryMap';
+import CoverLetterGenerator from './components/CoverLetterGenerator';
 import { useAppContext } from './AppContext';
 import { PAYMENT_SCHEDULES } from './constants';
-import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature, Settings as SettingsIcon, DollarSign, Hexagon } from 'lucide-react';
+import { LayoutDashboard, Mountain, Bell, ChevronDown, Map as MapIcon, CalendarRange, Table2, Menu, X, LogOut, CheckSquare, Briefcase, FileText, FileSignature, Settings as SettingsIcon, DollarSign, Hexagon, Mail } from 'lucide-react';
 
 const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => void }> = ({ currentUser, handleLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,6 +51,7 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
     { path: '/timeline', icon: CalendarRange, label: 'Timeline' },
     { path: '/invoices', icon: FileText, label: 'Invoices & Payments' },
     { path: '/payment-schedule', icon: DollarSign, label: 'Payment Schedule' },
+    { path: '/cover-letters', icon: Mail, label: 'Cover Letters' },
     { path: '/contracts', icon: FileSignature, label: 'Works & GI Contracts' },
     { path: '/settings', icon: SettingsIcon, label: 'Settings' }
   ];
@@ -248,6 +250,14 @@ const MainLayout: React.FC<{ currentUser: string | null; handleLogout: () => voi
               <div className="p-4 md:p-6">
                 <PaymentScheduleComponent
                   schedule={PAYMENT_SCHEDULES.find(ps => ps.agreementId === state.activeAgreementId)}
+                  agreementName={activeAgreement?.name || ''}
+                />
+              </div>
+            } />
+            <Route path="/cover-letters" element={
+              <div className="p-4 md:p-6">
+                <CoverLetterGenerator
+                  data={filteredFeatures}
                   agreementName={activeAgreement?.name || ''}
                 />
               </div>
