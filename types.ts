@@ -123,6 +123,7 @@ export interface ActivityItem {
   draftMilestone: number | null;
   finalMilestone: number | null;
   isGroup?: boolean;
+  note1?: boolean;
   group: string;
   paymentNote?: string;
 }
