@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ProjectFeature, TaskOrder, Invoice, WorksContract, Agreement, FastTrackOpportunity, ExpenditureItem, GIRequestLimit, UserCredentials } from './types';
+import { ProjectFeature, TaskOrder, Invoice, WorksContract, Agreement, FastTrackOpportunity, ExpenditureItem, GIRequestLimit, UserCredentials, BillingRecord, BillingMilestone } from './types';
 import { MOCK_DATA, AGREEMENTS, MOCK_INVOICES, FAST_TRACK_OPPORTUNITIES, CONTRACT_EXPENDITURES, GI_REQUEST_QUOTAS } from './constants';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,6 +13,7 @@ interface AppState {
     fastTrackOpportunities: FastTrackOpportunity[];
     contractExpenditures: ExpenditureItem[];
     giRequests: GIRequestLimit[];
+    billingRecords: BillingRecord[];
     credentials?: UserCredentials;
     columnOrder?: string[];
 }
@@ -45,6 +46,8 @@ interface AppContextType {
     addContract: (contract: WorksContract) => void;
     deleteContract: (id: string) => void;
     updateCredentials: (creds: UserCredentials) => void;
+    // Billing records (Payment Schedule billing tracking)
+    setBilling: (agreementId: string, itemNo: string, milestone: BillingMilestone, data: { billed: boolean; invoiceNo?: string; prNo?: string }) => void;
     exportData: () => void;
     importData: (jsonData: string) => void;
 }
@@ -81,6 +84,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             fastTrackOpportunities: FAST_TRACK_OPPORTUNITIES,
             contractExpenditures: CONTRACT_EXPENDITURES,
             giRequests: GI_REQUEST_QUOTAS,
+            billingRecords: [],
             credentials: { username: 'admin', passwordHash: '123' },
             columnOrder: defaultCols
         };
@@ -102,6 +106,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     fastTrackOpportunities: parsed.fastTrackOpportunities ?? freshState.fastTrackOpportunities,
                     contractExpenditures: parsed.contractExpenditures ?? freshState.contractExpenditures,
                     giRequests: parsed.giRequests ?? freshState.giRequests,
+                    billingRecords: parsed.billingRecords ?? freshState.billingRecords,
                     columnOrder: parsed.columnOrder ?? freshState.columnOrder,
                 };
                 // Merge any missing agreements from constants
@@ -238,6 +243,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setState(prev => ({ ...prev, credentials: creds }));
     };
 
+    const setBilling = (
+        agreementId: string,
+        itemNo: string,
+        milestone: BillingMilestone,
+        data: { billed: boolean; invoiceNo?: string; prNo?: string }
+    ) => {
+        setState(prev => {
+            const existing = prev.billingRecords ?? [];
+            const filtered = existing.filter(
+                r => !(r.agreementId === agreementId && r.itemNo === itemNo && r.milestone === milestone)
+            );
+            if (!data.billed) {
+                return { ...prev, billingRecords: filtered };
+            }
+            const newRecord: BillingRecord = {
+                agreementId,
+                itemNo,
+                milestone,
+                invoiceNo: data.invoiceNo,
+                prNo: data.prNo,
+            };
+            return { ...prev, billingRecords: [...filtered, newRecord] };
+        });
+    };
+
     const exportData = () => {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
         const downloadAnchorNode = document.createElement('a');
@@ -271,6 +301,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             updateInvoice, addInvoice, deleteInvoice,
             updateContract, addContract, deleteContract,
             updateCredentials,
+            setBilling,
             exportData, importData
         }}>
             {children}
