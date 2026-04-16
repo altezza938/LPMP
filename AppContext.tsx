@@ -88,22 +88,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
             if (stored) {
-                const parsed = JSON.parse(stored) as AppState;
+                const parsed = JSON.parse(stored) as Partial<AppState>;
+                // Fill in any missing top-level arrays/fields from fresh defaults so
+                // older persisted state doesn't crash components that iterate them.
+                const merged: AppState = {
+                    ...freshState,
+                    ...parsed,
+                    agreements: parsed.agreements ?? freshState.agreements,
+                    features: parsed.features ?? freshState.features,
+                    taskOrders: parsed.taskOrders ?? freshState.taskOrders,
+                    invoices: parsed.invoices ?? freshState.invoices,
+                    contracts: parsed.contracts ?? freshState.contracts,
+                    fastTrackOpportunities: parsed.fastTrackOpportunities ?? freshState.fastTrackOpportunities,
+                    contractExpenditures: parsed.contractExpenditures ?? freshState.contractExpenditures,
+                    giRequests: parsed.giRequests ?? freshState.giRequests,
+                    columnOrder: parsed.columnOrder ?? freshState.columnOrder,
+                };
                 // Merge any missing agreements from constants
-                const storedAgreementIds = new Set(parsed.agreements.map(a => a.id));
+                const storedAgreementIds = new Set(merged.agreements.map(a => a.id));
                 for (const ag of AGREEMENTS) {
                     if (!storedAgreementIds.has(ag.id)) {
-                        parsed.agreements.push(ag);
+                        merged.agreements.push(ag);
                     }
                 }
                 // Merge any missing features from constants
-                const storedFeatureIds = new Set(parsed.features.map(f => f.id));
+                const storedFeatureIds = new Set(merged.features.map(f => f.id));
                 for (const feat of MOCK_DATA) {
                     if (!storedFeatureIds.has(feat.id)) {
-                        parsed.features.push(feat);
+                        merged.features.push(feat);
                     }
                 }
-                return parsed;
+                return merged;
             }
         } catch (e) {
             console.error("Failed to parse stored state", e);
