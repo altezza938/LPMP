@@ -31,3 +31,10 @@ node_modules/
 ce47_data/
 ce53_data/
 *.py
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

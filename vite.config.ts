@@ -2,6 +2,8 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig({
   base: '/LPMP/',
   server: {
@@ -11,7 +13,7 @@ export default defineConfig({
   build: {
     outDir: 'docs',
   },
-  plugins: [react()],
+  plugins: [react(), cloudflare()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
