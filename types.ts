@@ -133,3 +133,13 @@ export interface PaymentSchedule {
   tenderedTotal: number;
   activities: ActivityItem[];
 }
+
+export type BillingMilestone = 'draft' | 'final' | 'full';
+
+export interface BillingRecord {
+  agreementId: string;
+  itemNo: string;
+  milestone: BillingMilestone;
+  invoiceNo?: string;
+  prNo?: string;
+}
